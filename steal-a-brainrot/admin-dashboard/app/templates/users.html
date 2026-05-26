@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block title %}Users - SAB Admin{% endblock %}
+{% block page_title %}User & HWID Bind Management{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 1.5rem;">
+    <input type="text" id="tableSearch" class="form-input search-bar" placeholder="🔍 Search users...">
+</div>
+
+<div class="card">
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Roblox ID</th>
+                    <th>Discord User</th>
+                    <th>Status</th>
+                    <th>Active HWID Bind</th>
+                    <th>Last IP Address</th>
+                    <th>Created At</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td><strong>{{ user.username }}</strong></td>
+                    <td><code>{{ user.roblox_id or 'N/A' }}</code></td>
+                    <td>{{ user.discord_username or 'None' }}</td>
+                    <td>
+                        {% if user.status == 'active' %}
+                        <span class="badge badge-success">Active</span>
+                        {% elif user.status == 'banned' %}
+                        <span class="badge badge-danger">Banned</span>
+                        {% else %}
+                        <span class="badge badge-warning">{{ user.status }}</span>
+                        {% endif %}
+                    </td>
+                    <td><code style="font-size: 0.8rem;">{{ user.hwid or 'None' }}</code></td>
+                    <td><code>{{ user.ip_address or 'None' }}</code></td>
+                    <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
+                    <td>
+                        {% if user.status == 'active' %}
+                        <form action="{{ url_for('admin.ban_user', user_id=user.id) }}" method="POST" onsubmit="return confirm('Ban this user and lock their access?');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">Ban User</button>
+                        </form>
+                        {% elif user.status == 'banned' %}
+                        <form action="{{ url_for('admin.unban_user', user_id=user.id) }}" method="POST" onsubmit="return confirm('Unban user?');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-success" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">Unban</button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="8" style="text-align: center; color: var(--text-muted);">No members registered yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

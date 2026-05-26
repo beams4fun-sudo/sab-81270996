@@ -1,0 +1,31 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Database and instances
+instance/
+*.db
+*.sqlite
+
+# Virtual environments
+venv/
+Venv/
+env/
+.env
+.venv
+ENV/
+
+# IDE configurations
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# OS generated
+Thumbs.db
+ehthumbs.db
+Desktop.ini

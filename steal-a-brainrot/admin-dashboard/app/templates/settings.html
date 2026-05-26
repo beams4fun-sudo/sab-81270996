@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block title %}Settings - SAB Admin{% endblock %}
+{% block page_title %}System Settings{% endblock %}
+
+{% block content %}
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; align-items: start;">
+    <!-- Webhook settings -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Discord Webhook Configuration</h3>
+        </div>
+        <form action="{{ url_for('admin.settings_page') }}" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="form-group" style="margin-bottom: 1.25rem;">
+                <label class="form-label">Discord Webhook URL</label>
+                <input type="url" name="discord_webhook_url" class="form-input" placeholder="https://discord.com/api/webhooks/..." value="{{ webhook_url }}">
+                <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem;">Logs validations, activations, bans, and actions directly to your server.</p>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 1.25rem;">
+                <label class="form-label">Server External URL (For Loader Connections)</label>
+                <input type="url" name="server_external_url" class="form-input" placeholder="http://<your-public-ip-or-domain>:5000" value="{{ server_external_url }}">
+                <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem;">The external IP address or domain that Roblox servers can use to reach this dashboard (e.g. via ngrok or port forwarding).</p>
+            </div>
+            
+            <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
+                <button type="submit" class="btn btn-primary">Save Settings</button>
+                <button type="button" class="btn btn-ghost" onclick="testWebhook('{{ url_for('admin.test_webhook') }}')">🔔 Send Test Embed</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Administrative accounts list -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Administrative Accounts</h3>
+        </div>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Role</th>
+                        <th>Registered</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for admin in admins %}
+                    <tr>
+                        <td><strong>{{ admin.username }}</strong></td>
+                        <td><span class="badge {% if admin.role == 'superadmin' %}badge-info{% else %}badge-neutral{% endif %}">{{ admin.role }}</span></td>
+                        <td>{{ admin.created_at.strftime('%Y-%m-%d') }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

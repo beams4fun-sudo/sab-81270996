@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Member Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+</head>
+<body class="portal-container">
+    <div class="portal-card">
+        <h2 class="portal-title">License Verified</h2>
+        <p class="portal-subtitle">Thank you for validating your product membership.</p>
+
+        <div class="card" style="text-align: left; margin-bottom: 1.5rem; background-color: var(--bg-tertiary);">
+            <div style="margin-bottom: 0.75rem;">
+                <span class="form-label" style="display:inline;">Key Preview:</span>
+                <code style="color:var(--accent-blue);">{{ key_info.key_preview }}</code>
+            </div>
+            <div style="margin-bottom: 0.75rem;">
+                <span class="form-label" style="display:inline;">Status:</span>
+                <span class="badge badge-success">{{ key_info.status }}</span>
+            </div>
+            <div style="margin-bottom: 0.75rem;">
+                <span class="form-label" style="display:inline;">Expires At:</span>
+                <code>{{ key_info.expires_at.strftime('%Y-%m-%d %H:%M') if key_info.expires_at else 'N/A' }}</code>
+            </div>
+            <div>
+                <span class="form-label" style="display:inline;">Bound HWID:</span>
+                <code style="font-size:0.75rem; word-break:break-all;">{{ key_info.hwid }}</code>
+            </div>
+        </div>
+
+        <a href="{{ url_for('member.logout') }}" class="btn btn-ghost" style="width: 100%;">Disconnect Session</a>
+    </div>
+</body>
+</html>

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - SAB Admin</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+</head>
+<body class="portal-container">
+    <div class="portal-card">
+        <h2 class="portal-title">SAB Platform</h2>
+        <p class="portal-subtitle">Administrative Dashboard Sign In</p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="flash-message flash-{{ category }}">{{ message }}</div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <form action="{{ url_for('auth.login') }}" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="form-group" style="text-align: left;">
+                <label class="form-label">Username</label>
+                <input type="text" name="username" class="form-input" placeholder="Enter username" required>
+            </div>
+            <div class="form-group" style="text-align: left;">
+                <label class="form-label">Password</label>
+                <input type="password" name="password" class="form-input" placeholder="Enter password" required>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Sign In</button>
+        </form>
+    </div>
+</body>
+</html>

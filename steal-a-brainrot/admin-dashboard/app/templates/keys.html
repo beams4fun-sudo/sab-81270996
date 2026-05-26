@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+
+{% block title %}Keys - SAB Admin{% endblock %}
+{% block page_title %}Key Management{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; margin-bottom: 1.5rem;">
+    <input type="text" id="tableSearch" class="form-input search-bar" placeholder="🔍 Search keys...">
+    <button class="btn btn-primary" onclick="openGenerateModal()">🔑 Generate Keys</button>
+</div>
+
+<div class="card">
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Key Preview</th>
+                    <th>Status</th>
+                    <th>Associated User</th>
+                    <th>Duration (Days)</th>
+                    <th>Expires At</th>
+                    <th>Note</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for key in keys %}
+                <tr>
+                    <td>
+                        <code>{{ key.key_preview }}</code>
+                        {% if key.key_string %}
+                        <button class="btn btn-ghost" style="padding: 0.15rem 0.35rem; font-size: 0.75rem; margin-left: 0.5rem;" onclick="copyText('{{ key.key_string }}')">📋 Copy</button>
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {% if key.status == 'unused' %}
+                        <span class="badge badge-neutral">Unused</span>
+                        {% elif key.status == 'active' %}
+                        <span class="badge badge-success">Active</span>
+                        {% elif key.status == 'expired' %}
+                        <span class="badge badge-warning">Expired</span>
+                        {% elif key.status == 'banned' %}
+                        <span class="badge badge-danger">Banned</span>
+                        {% else %}
+                        <span class="badge badge-neutral">{{ key.status }}</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ key.user.username if key.user else 'None' }}</td>
+                    <td>{{ key.duration_days }}</td>
+                    <td>{{ key.expires_at.strftime('%Y-%m-%d %H:%M') if key.expires_at else 'N/A' }}</td>
+                    <td>{{ key.note or '' }}</td>
+                    <td>
+                        {% if key.status in ['unused', 'active'] %}
+                        <div style="display: flex; gap: 0.5rem;">
+                            <form action="{{ url_for('admin.revoke_key', key_id=key.id) }}" method="POST" onsubmit="return confirm('Revoke this key?');">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-ghost" style="padding: 0.25rem 0.5rem; font-size: 0.8rem; color: var(--accent-amber);">Revoke</button>
+                            </form>
+                            <form action="{{ url_for('admin.ban_key', key_id=key.id) }}" method="POST" onsubmit="return confirm('Ban this key and associated user?');">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">Ban</button>
+                            </form>
+                        </div>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" style="text-align: center; color: var(--text-muted);">No keys generated yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Generate Modal -->
+<div class="modal-overlay" id="generateModalOverlay">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3>Generate Keys</h3>
+            <button class="close-btn" onclick="closeGenerateModal()">&times;</button>
+        </div>
+        <form action="{{ url_for('admin.generate_keys') }}" method="POST" onsubmit="generateKeysSubmit(event)">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="form-group">
+                <label class="form-label">Quantity</label>
+                <input type="number" name="count" class="form-input" min="1" max="100" value="1" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Duration (Days)</label>
+                <input type="number" name="duration" class="form-input" min="1" value="30" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Note</label>
+                <input type="text" name="note" class="form-input" placeholder="e.g. Member reward">
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem;">
+                <button type="button" class="btn btn-ghost" onclick="closeGenerateModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary">Generate</button>
+            </div>
+        </form>
+
+        <!-- Generation Results Box -->
+        <div id="generatedKeysOutput" style="display: none; margin-top: 1.5rem; border-top: 1px solid var(--border); padding-top: 1rem;">
+            <p class="form-label" style="color: var(--accent-emerald);">⚠️ Copy these keys now. They will not be displayed in plaintext again.</p>
+            <div id="generatedKeysList" style="max-height: 200px; overflow-y: auto; margin-top: 0.5rem;"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}

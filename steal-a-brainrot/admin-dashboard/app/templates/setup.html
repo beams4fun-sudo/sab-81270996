@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Setup - SAB Admin</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+</head>
+<body class="portal-container">
+    <div class="portal-card">
+        <h2 class="portal-title">System Initialization</h2>
+        <p class="portal-subtitle">Configure your first superadministrator account</p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="flash-message flash-{{ category }}">{{ message }}</div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <form action="{{ url_for('auth.setup') }}" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="form-group" style="text-align: left;">
+                <label class="form-label">Superadmin Username</label>
+                <input type="text" name="username" class="form-input" placeholder="e.g. admin" required>
+            </div>
+            <div class="form-group" style="text-align: left;">
+                <label class="form-label">Email Address</label>
+                <input type="email" name="email" class="form-input" placeholder="admin@example.com">
+            </div>
+            <div class="form-group" style="text-align: left;">
+                <label class="form-label">Password</label>
+                <input type="password" name="password" class="form-input" placeholder="Choose a secure password" required>
+            </div>
+            <button type="submit" class="btn btn-success" style="width: 100%; margin-top: 1rem;">Complete Setup</button>
+        </form>
+    </div>
+</body>
+</html>
